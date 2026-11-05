@@ -107,3 +107,8 @@ node_modules/
 *.pdb
 *.cache
 
+
+# Local SQLite database (Starch Wallpapers revival)
+*.db
+*.db-shm
+*.db-wal
