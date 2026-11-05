@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h3>Please Login to Submit:</h3>
+<form asp-action="Login" method="post" class="submit-form">
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+    @if (ViewData["Error"] is string error)
+    {
+        <div class="text-danger">@error</div>
+    }
+    <label for="username">Username:</label>
+    <input id="username" name="username" autocomplete="username" class="form-control" required />
+    <label for="password">Password:</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" class="form-control" required />
+    <button type="submit" class="btn btn-primary mt-3">Login</button>
+</form>

@@ -40,7 +40,7 @@ body {
     user-select: none;
 }
 
-.wallpaper-wrapper { /*Wrapper der sikrer at billedet forbliver centreret nÂr det zoomer ind og fÂ en border.*/
+.wallpaper-wrapper { /*Wrapper der sikrer at billedet forbliver centreret n√•r det zoomer ind og f√• en border.*/
     position: relative;
     width: 100%;
     height: 100%;
@@ -53,11 +53,11 @@ body {
     border-radius: 8px;
 }
 
-.wallpaper-container:hover { /*GrÊnse bliver synlig on hover.*/
+.wallpaper-container:hover { /*Gr√¶nse bliver synlig on hover.*/
     border-color: #314ec1;
 }
 
-    .wallpaper-container:hover .wallpaper-wrapper img { /*Effekter pÂ selve billedet. Hele wrapperen der er om billedet skaleres.*/
+    .wallpaper-container:hover .wallpaper-wrapper img { /*Effekter p√• selve billedet. Hele wrapperen der er om billedet skaleres.*/
         transform: scale(1.03);
         filter: blur(2px);
     }
@@ -78,17 +78,54 @@ body {
     border-radius: 5px;
 }
 
-.wallpaper-container:hover .overlay-text { /*Tekst bliver synlig nÂr on hover.*/
+.wallpaper-container:hover .overlay-text { /*Tekst bliver synlig n√•r on hover.*/
     opacity: 1;
 }
 
-.productcontainer { /*Deler Browse/ShowProducts i et grid.*/
+.productcontainer { /*Deler Browse/ShowProducts i et grid. Antallet af kolonner tilpasser sig sk√¶rmen.*/
     display: grid;
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
 }
 
-.slogan { /*Forst¯rrer og centrerer slogan.*/
-    vertical-align: central;
+.productcontainer .wallpaper-wrapper img {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+}
+
+.vertcenter { /*Banner p√• forsiden. Klassen blev brugt i Index.cshtml, men var aldrig defineret.*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 420px;
+    padding: 2rem;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+}
+
+.slogan { /*Forst√∏rrer og centrerer slogan.*/
     text-align: center;
-    font-size: 50px;
+    font-size: clamp(32px, 6vw, 50px);
+    color: white;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.product { /*√ât wallpaper i Browse-gitteret. F√∏r stod display:grid inline, og <br /> mellem dem fyldte celler ud.*/
+    display: grid;
+    align-content: start;
+}
+
+.submit-form { /*Formularerne p√• Login og Submit.*/
+    display: grid;
+    gap: 0.25rem;
+    max-width: 420px;
+}
+
+.submit-form label {
+    margin-top: 0.75rem;
+}
+
+.filter-form {
+    margin-bottom: 1rem;
 }

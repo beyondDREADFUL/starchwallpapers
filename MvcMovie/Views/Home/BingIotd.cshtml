@@ -4,20 +4,27 @@
     ViewData["Title"] = "Bing Image of the Day";
 }
 <div>
-    <h1><img src="~/images/Microsoft_Bing_logo.svg" height="42px" style="margin-right: 10px;" />Image of the Day</h1>
+    <h1><img src="~/images/Microsoft_Bing_logo.svg" height="42" style="margin-right: 10px;" alt="Bing" />Image of the Day</h1>
+    @if (Model.Count == 0)
+    {
+        <p class="text-muted">No pictures yet. They are fetched from Bing in the background, so check back in a moment.</p>
+    }
 
     <div>
-        @foreach (Bing item in Model) @*For hver entry i tabellen vises følgende.*@
+        @foreach (Bing item in Model) @*For hver entry i tabellen vises følgende. Siden viser en 1280px udgave; Download-linket giver det fulde UHD-billede.*@
         {
             <h2>@item.Title</h2>
             <div class="wallpaper-container">
                 <div class="wallpaper-wrapper">
-                    <a href="@item.Url" target="_blank"><img src="@item.Url" alt="Bing Image" height="400px"></a>
+                    <a href="@item.Url" target="_blank" rel="noopener"><img src="@(item.Url.Contains("bing.com/th") ? item.Url + "&w=1280" : item.Url)" alt="@item.Title" height="400" loading="lazy"></a>
                 </div>
-                <div class="overlay-text"><a href="@item.Url" target="_blank" style="color: inherit; text-decoration: inherit;">Download <img src="~/images/open_link.svg" height="15px" style="vertical-align:middle;"></a></div>
+                <div class="overlay-text"><a href="@item.Url" target="_blank" rel="noopener" style="color: inherit; text-decoration: inherit;">Download <img src="~/images/open_link.svg" height="15" style="vertical-align:middle;"></a></div>
             </div>
             <h3>@item.Date</h3>
-            <p>Copyright: @item.Copyright</p>
+            @if (!string.IsNullOrWhiteSpace(item.Copyright))
+            {
+                <p>Copyright: @item.Copyright</p>
+            }
             <br />
         }
     </div>

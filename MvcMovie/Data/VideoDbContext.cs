@@ -4,26 +4,21 @@ using MVCVideoGuide.Data.Entities;
 namespace MVCVideoGuide.Data
 {
     public class VideoDbContext : DbContext
-
     {
-        private readonly IConfiguration _config;
-
-        public VideoDbContext(IConfiguration config)
+        // Forbindelsen (SQLite-filen) konfigureres i Program.cs og gives videre via options.
+        public VideoDbContext(DbContextOptions<VideoDbContext> options) : base(options)
         {
-            _config = config;
         }
 
-        public DbSet<Order> Orders { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<User> Users { get; set; }
         public DbSet<NASA> NASAIotd { get; set; }
         public DbSet<Bing> BingIotd { get; set; }
-        public DbSet<OrderProduct> OrderProducts { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer(_config.GetConnectionString("VideoDbConnection"));
+            // Samme dato må kun gemmes én gang. Tidligere blev det kun tjekket i controlleren.
+            modelBuilder.Entity<NASA>().HasIndex(n => n.Date).IsUnique();
+            modelBuilder.Entity<Bing>().HasIndex(b => b.Date).IsUnique();
         }
     }
 }

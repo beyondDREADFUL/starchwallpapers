@@ -1,33 +1,22 @@
 ﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 
-// Write your JavaScript code.
+// Login() er fjernet: login tjekkes nu på serveren (HomeController.Login).
 
-function Login() { // Simpel placeholder login der for nu bare gemmer submission menuen væk indtil man skriver det rigtige login.
-    // Er enormt usikkert og kan nemt omgås i Inspect Element. Demonstrerer dog funktionaliteten.
-    if (document.getElementById("username").value === "User1" && document.getElementById("password").value === "password123") { // Username: User1 - Password: password123
-        document.getElementById("disclaimer").style.display = "none";
-        document.getElementById("submit").style.display = "block";
+function FilterTags() { // Viser kun de wallpapers hvis tag matcher. Tomt felt = vis alle.
+    // Tagget ligger i data-tag i stedet for som CSS-klasse, så store/små bogstaver og et "#" foran ikke betyder noget.
+    var tag = document.getElementById("FilterTag").value.trim().replace(/^#+/, "").trim().toLowerCase();
+    var products = document.querySelectorAll("#productcontainer .product");
+    var shown = 0;
+    for (var i = 0; i < products.length; i++) {
+        var match = tag === "" || products[i].dataset.tag === tag;
+        products[i].style.display = match ? "" : "none";
+        if (match) shown++;
     }
+    document.getElementById("nomatch").style.display = shown === 0 && products.length > 0 ? "block" : "none";
 }
 
-function FilterTags() { // Gemmer alt og finder derefter de rigtige wallpapers frem. 
-    // Gøres på denne måde så menuen ikke er helt tom som ved en tidligere afprøvet fremgang der til gengæld var mere effektiv.
-    var tag = document.getElementById("FilterTag").value;
-    var children = document.getElementById("productcontainer").children;
-    for (var i = 0; i < children.length; i++) {
-        children[i].style.display = "none";
-    }
-    matching = document.getElementsByClassName(tag);
-    for (var i = 0; i < matching.length; i++) {
-        matching[i].style.display = "grid";
-    }
-}
-
-function ResetFilter(){ // Resetter filtre og gør alt synligt igen. Rydder også tag-feltet.
-    var children = document.getElementById("productcontainer").children;
-    for (var i = 0; i < children.length; i++) {
-        children[i].style.display = "grid";
-    }
-    document.getElementById("FilterTag").value = ""; // Tag-feltet ryddes.
+function ResetFilter() { // Resetter filtre og gør alt synligt igen. Rydder også tag-feltet.
+    document.getElementById("FilterTag").value = "";
+    FilterTags();
 }

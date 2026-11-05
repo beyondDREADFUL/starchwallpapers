@@ -2,16 +2,15 @@
     ViewData["Title"] = "Home";
 }
 
-@*Titel af viewet defineres foroven. JavaScript fil linkes forneden så der kan fetches.*@
-
-<script src='~/js/fetchAPI.js'></script>
+@*Titel af viewet defineres foroven. fetchAPI.js er fjernet: NASA og Bing hentes nu af serveren (Services/ImageOfTheDayFetcher.cs).*@
 
 <div class="text-center">
-    <img style="margin: 0 auto; user-select: none;" src="~/images/StarchWallpapers.svg" width="35%"/>
+    <img style="margin: 0 auto; user-select: none;" src="~/images/StarchWallpapers.svg" width="35%" alt="Starch Wallpapers" />
     <br />
     <br />
     <div class="container">
-        <div class="vertcenter" style="background-image:url('/images/Neitvuori.jpg')">
+        @* Stien var før Neitvuori.jpg, men filen hedder Neitvuori.jpeg, så baggrunden blev aldrig vist. *@
+        <div class="vertcenter" style="background-image:url('/images/Neitvuori.jpeg')">
             <h1 class="slogan">Wallpapers that stick with you</h1>
         </div>
     </div>

@@ -1,35 +1,37 @@
-﻿@{
+﻿@model Product
+@{
     ViewData["Title"] = "Submit Wallpapers";
 }
 
-<script src='~/js/site.js'></script>
+@* Kun synlig når man er logget ind ([Authorize] i controlleren sender en til Login ellers). *@
 
-<div id="disclaimer" display:block;>
-    <h3>Please Login to Submit:</h3>
-    <label>Username: </label><input id="username" /> <label>Password: </label><input id="password"/><button onclick="Login()">Login</button>
-</div>
+<h1>@ViewData["Title"]</h1>
+<h2>Type in your information: </h2>
+<form asp-action="AddProduct" method="post" class="submit-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-<div id="submit" style="display:none;">
-    <h1>@ViewData["Title"]</h1>
-    <h2>Type in your information: </h2>
-    <form method="post">
-        <label> Wallpaper Title: </label>
-        <br />
-        <input type="text" name="Item" style="width:120px;" />
-        <br />
-        <label> Wallpaper Cost (0 = Free): </label>
-        <br />
-        <input type="text" name="Cost" style="width:120px;" />
-        <br />
-        <label> Wallpaper URL: </label>
-        <br />
-        <input type="text" name="Img" style="width:120px;" />
-        <br />
-        <label> Wallpaper Tag: </label>
-        <br />
-        <label for="Tag"><input type="text" value="#" style="width:18px;" readonly></label><input type="text" id="Tag" name="Tag" style="width:102px;" />
-        <br />
-        <br />
-        <input type="submit" value="Submit" />
-    </form>
-</div>
+    <label asp-for="Item">Wallpaper Title:</label>
+    <input asp-for="Item" class="form-control" />
+    <span asp-validation-for="Item" class="text-danger"></span>
+
+    <label asp-for="Cost">Wallpaper Cost in DKK (0 = Free):</label>
+    <input asp-for="Cost" type="number" min="0" step="0.01" class="form-control" />
+    <span asp-validation-for="Cost" class="text-danger"></span>
+
+    <label asp-for="Img">Wallpaper URL:</label>
+    <input asp-for="Img" type="url" placeholder="https://..." class="form-control" />
+    <span asp-validation-for="Img" class="text-danger"></span>
+
+    <label asp-for="Tag">Wallpaper Tag:</label>
+    <div class="input-group">
+        <span class="input-group-text">#</span>
+        <input asp-for="Tag" placeholder="nature" class="form-control" />
+    </div>
+    <span asp-validation-for="Tag" class="text-danger"></span>
+
+    <input type="submit" value="Submit" class="btn btn-primary mt-3" />
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

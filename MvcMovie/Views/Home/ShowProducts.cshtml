@@ -1,34 +1,36 @@
-﻿@model List<Product> 
+﻿@model List<Product>
 @* Data hentes fra Product modellen. *@
 
 @{
     ViewData["Title"] = "Browse Wallpapers";
 }
 
-<script src='~/js/site.js'></script>
-
 <h1>Browse between @Model.Count of our curated wallpapers!</h1>
 <div>
     <h3>Filter by Tag</h3>
-    <div>
-        <label for="FilterTag"><input type="text" value="#" style="width:18px;" readonly></label>
-        <input type="text" id="FilterTag" name="FilterTag" style="width:100px;"></input><button onclick="FilterTags()">Submit</button><button onclick="ResetFilter()">Reset Filter</button>
-    </div>
+    <form class="filter-form" onsubmit="FilterTags(); return false;">
+        <div class="input-group" style="max-width: 360px;">
+            <span class="input-group-text">#</span>
+            <input type="text" id="FilterTag" class="form-control" placeholder="nature" />
+            <button type="submit" class="btn btn-outline-primary">Submit</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="ResetFilter()">Reset Filter</button>
+        </div>
+    </form>
+    <p id="nomatch" class="text-muted" style="display:none;">No wallpapers with that tag.</p>
     <div id="productcontainer" class="productcontainer">
         @foreach (Product item in Model)
         {
-            <div class="@item.Tag" style="display:grid;">
+            <div class="product" data-tag="@item.Tag.ToLowerInvariant()">
                 <h2>@item.Item</h2>
                 <div class="wallpaper-container">
                     <div class="wallpaper-wrapper">
-                        <a href="@item.Img" target="_blank"><img src="@item.Img" alt="Image" height="400px"></a>
+                        <a href="@item.Img" target="_blank" rel="noopener"><img src="@item.Img" alt="@item.Item" loading="lazy"></a>
                     </div>
-                    <div class="overlay-text"><a href="@item.Img" target="_blank" style="color: inherit; text-decoration: inherit;">Purchase <img src="~/images/open_link.svg" height="15px" style="vertical-align:middle;"></a></div>
+                    <div class="overlay-text"><a href="@item.Img" target="_blank" rel="noopener" style="color: inherit; text-decoration: inherit;">@(item.Cost == 0 ? "Download" : "Purchase") <img src="~/images/open_link.svg" height="15" style="vertical-align:middle;"></a></div>
                 </div>
                 <h4>#@item.Tag</h4>
-                <h4>Price: @item.Cost DKK</h4>
+                <h4>Price: @(item.Cost == 0 ? "Free" : item.Cost.ToString("0.00") + " DKK")</h4>
             </div>
-            <br />
         }
     </div>
 </div>

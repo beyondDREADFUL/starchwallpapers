@@ -5,20 +5,27 @@
 }
 
 <div>
-    <h1><img src="~/images/NASA_logo.svg" height="42px" style="margin-right: 2px;" />Astronomy Picture of the Day</h1>
+    <h1><img src="~/images/NASA_logo.svg" height="42" style="margin-right: 2px;" alt="NASA" />Astronomy Picture of the Day</h1>
+    @if (Model.Count == 0)
+    {
+        <p class="text-muted">No pictures yet. They are fetched from NASA in the background, so check back in a moment.</p>
+    }
     <div>
         @foreach (NASA item in Model)
         {
             <h2>@item.Title</h2>
             <div class="wallpaper-container">
                 <div class="wallpaper-wrapper">
-                    <a href="@item.Hdimg" target="_blank"><img src="@item.Thumbnail" alt="NASA Image" height="400px"></a>
+                    <a href="@item.Hdimg" target="_blank" rel="noopener"><img src="@item.Thumbnail" alt="@item.Title" height="400" loading="lazy"></a>
                 </div>
-                <div class="overlay-text"><a href="@item.Hdimg" target="_blank" style="color: inherit; text-decoration: inherit;">Download <img src="~/images/open_link.svg" height="15px" style="vertical-align:middle;"></a></div>
+                <div class="overlay-text"><a href="@item.Hdimg" target="_blank" rel="noopener" style="color: inherit; text-decoration: inherit;">@(item.IsVideo ? "Watch video" : "Download") <img src="~/images/open_link.svg" height="15" style="vertical-align:middle;"></a></div>
             </div>
             <h3>@item.Date</h3>
             <p>@item.Tooltip</p>
-            <p>Copyright: @item.Copyright</p>
+            @if (!string.IsNullOrWhiteSpace(item.Copyright))
+            {
+                <p>Copyright: @item.Copyright</p>
+            }
             <br />
         }
     </div>
