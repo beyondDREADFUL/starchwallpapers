@@ -98,29 +98,36 @@ public class ImageOfTheDayFetcher : BackgroundService
 
     private async Task FetchBingAsync(VideoDbContext db, CancellationToken ct)
     {
-        // Den fulde fil (en.json) er 5 MB med alle billeder siden 2010 og blev før hentet af hver ny besøgende.
-        // Årsfilen er under 0,5 MB. I starten af januar tages sidste år med, så ugen bliver fuld.
+        // Før brugtes bing.npanuhin.me, fordi Bings eget endpoint blokerer JavaScript i browseren (CORS).
+        // Nu henter serveren selv, og CORS gælder kun for browsere, så Bing kan kaldes direkte.
+        // Endpointet er udokumenteret, men har været uændret i over ti år. Det giver højst de seneste 8 dage.
         var client = _http.CreateClient();
-        var now = DateTime.UtcNow;
-        var items = new List<BingResponse>();
-        if (now.DayOfYear <= DaysBack)
-            items.AddRange(await client.GetFromJsonAsync<List<BingResponse>>($"https://bing.npanuhin.me/US/en.{now.Year - 1}.json", ct) ?? []);
-        items.AddRange(await client.GetFromJsonAsync<List<BingResponse>>($"https://bing.npanuhin.me/US/en.{now.Year}.json", ct) ?? []);
+        var archive = await client.GetFromJsonAsync<BingArchive>(
+            $"https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n={DaysBack + 1}&mkt=en-US", ct);
 
-        var latest = items.Where(b => !string.IsNullOrEmpty(b.Date)).OrderBy(b => b.Date).TakeLast(DaysBack);
         var existing = await db.BingIotd.Select(b => b.Date).ToHashSetAsync(ct);
         int added = 0;
-        foreach (var b in latest)
+        foreach (var b in archive?.Images ?? [])
         {
-            var img = b.BingUrl ?? b.Url;
-            if (existing.Contains(b.Date!) || string.IsNullOrEmpty(img)) continue;
+            // startdate er "20261105". Gemmes som "2026-11-05" ligesom NASA og de gamle rækker.
+            if (b.StartDate is not { Length: 8 } d || string.IsNullOrEmpty(b.UrlBase)) continue;
+            var date = $"{d[..4]}-{d[4..6]}-{d[6..]}";
+            if (existing.Contains(date)) continue;
+
+            // copyright er "Sted, Land (© Fotograf/Bureau)". Stedet bliver titlen og resten copyright.
+            var text = b.Copyright ?? "";
+            var split = text.LastIndexOf(" (©", StringComparison.Ordinal);
+            var title = split > 0 ? text[..split] : (b.Title ?? text);
+            var copyright = split > 0 ? text[(split + 2)..].TrimEnd(')') : null;
+
             db.BingIotd.Add(new Bing
             {
-                Date = b.Date!,
-                Title = b.Title ?? "",
-                Url = img,
-                Copyright = b.Copyright,
+                Date = date,
+                Title = title,
+                Url = $"https://www.bing.com{b.UrlBase}_UHD.jpg", // Fuld opløsning. Siden viser en 1280px udgave.
+                Copyright = copyright,
             });
+            existing.Add(date);
             added++;
         }
         await db.SaveChangesAsync(ct);
@@ -137,10 +144,12 @@ public class ImageOfTheDayFetcher : BackgroundService
         [property: JsonPropertyName("media_type")] string? MediaType,
         [property: JsonPropertyName("thumbnail_url")] string? ThumbnailUrl);
 
-    private record BingResponse(
-        [property: JsonPropertyName("date")] string? Date,
-        [property: JsonPropertyName("title")] string? Title,
+    private record BingArchive(
+        [property: JsonPropertyName("images")] List<BingImage>? Images);
+
+    private record BingImage(
+        [property: JsonPropertyName("startdate")] string? StartDate,
+        [property: JsonPropertyName("urlbase")] string? UrlBase,
         [property: JsonPropertyName("copyright")] string? Copyright,
-        [property: JsonPropertyName("bing_url")] string? BingUrl,
-        [property: JsonPropertyName("url")] string? Url);
+        [property: JsonPropertyName("title")] string? Title);
 }
