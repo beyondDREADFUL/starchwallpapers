@@ -1,4 +1,4 @@
-﻿@model List<Bing>
+@model List<Bing>
 
 @{
     ViewData["Title"] = "Bing Image of the Day";
@@ -7,7 +7,7 @@
     <h1><img src="~/images/Microsoft_Bing_logo.svg" height="42" style="margin-right: 10px;" alt="Bing" />Image of the Day</h1>
     @if (Model.Count == 0)
     {
-        <p class="text-muted">No pictures yet. They are fetched from Bing in the background, so check back in a moment.</p>
+        <p class="text-muted">No pictures right now. Check back later.</p>
     }
 
     <div>

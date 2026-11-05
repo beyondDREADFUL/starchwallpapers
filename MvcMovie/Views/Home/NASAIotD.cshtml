@@ -1,4 +1,4 @@
-﻿@model List<NASA>
+@model List<NASA>
 
 @{
     ViewData["Title"] = "NASA Astronomy Picture of the Day";
@@ -8,7 +8,7 @@
     <h1><img src="~/images/NASA_logo.svg" height="42" style="margin-right: 2px;" alt="NASA" />Astronomy Picture of the Day</h1>
     @if (Model.Count == 0)
     {
-        <p class="text-muted">No pictures yet. They are fetched from NASA in the background, so check back in a moment.</p>
+        <p class="text-muted">No pictures right now. NASA's picture feed is having problems, so check back later.</p>
     }
     <div>
         @foreach (NASA item in Model)

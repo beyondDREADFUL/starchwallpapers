@@ -112,3 +112,6 @@ node_modules/
 *.db
 *.db-shm
 *.db-wal
+
+# Static GitHub Pages build output
+_site/

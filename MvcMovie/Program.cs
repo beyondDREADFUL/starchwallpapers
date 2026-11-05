@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json;
+using MVCVideoGuide.Data.Entities;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
@@ -56,7 +58,24 @@ app.Use(async (context, next) =>
 // Databasen (en SQLite-fil) oprettes ét sted ved opstart i stedet for i hver controller-metode.
 using (var scope = app.Services.CreateScope())
 {
-    scope.ServiceProvider.GetRequiredService<VideoDbContext>().Database.EnsureCreated();
+    var db = scope.ServiceProvider.GetRequiredService<VideoDbContext>();
+    db.Database.EnsureCreated();
+
+    // En tom database får nogle startbilleder til Browse (dit eget billede + public domain fra NASA).
+    var seedFile = Path.Combine(AppContext.BaseDirectory, "Data", "seed-wallpapers.json");
+    if (!db.Products.Any() && File.Exists(seedFile))
+    {
+        var seed = JsonSerializer.Deserialize<List<Product>>(File.ReadAllText(seedFile)) ?? [];
+        db.Products.AddRange(seed.Select(p => { p.Id = 0; return p; }));
+        db.SaveChanges();
+    }
+}
+
+// Når siden ligger i en undermappe (fx /starchwallpapers/ på GitHub Pages), skal alle links starte med den.
+var pathBase = app.Configuration["PathBase"];
+if (!string.IsNullOrEmpty(pathBase))
+{
+    app.UsePathBase(pathBase);
 }
 
 // Pris-feltet bruger punktum som decimaltegn uanset serverens sprog (29.95, ikke 29,95).

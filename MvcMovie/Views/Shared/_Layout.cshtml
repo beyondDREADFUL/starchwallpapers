@@ -1,3 +1,8 @@
+@inject IConfiguration Config
+@{
+    // StaticSite=true når siden bygges som snapshot til GitHub Pages (se tools/build-static-site.sh).
+    var staticSite = Config.GetValue<bool>("StaticSite");
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,9 +36,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="NASAIotd">NASA</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddProduct">Submit</a>
-                        </li>
+                        @if (!staticSite)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="AddProduct">Submit</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="About">About</a>
                         </li>
@@ -42,7 +50,11 @@
                         </li>
                     </ul>
                     <ul class="navbar-nav">
-                        @if (User.Identity?.IsAuthenticated == true)
+                        @if (staticSite)
+                        {
+                            @* På GitHub Pages er der ingen server, så login og Submit vises ikke. *@
+                        }
+                        else if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
                                 <form asp-controller="Home" asp-action="Logout" method="post" class="d-inline">
@@ -70,6 +82,13 @@
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2025 - Starch Wallpapers - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            @if (staticSite)
+            {
+                <span class="footer-note">
+                    - Showcase snapshot, updated @DateTime.UtcNow.ToString("yyyy-MM-dd") -
+                    <a href="https://github.com/beyondDREADFUL/starchwallpapers">Source</a>
+                </span>
+            }
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
