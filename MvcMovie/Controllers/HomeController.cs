@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MvcMovie.Models;
 using MVCVideoGuide.Data;
 using MVCVideoGuide.Data.Entities;
@@ -69,6 +70,7 @@ public class HomeController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("login")] // Se Program.cs: højst 5 forsøg i minuttet.
     public async Task<IActionResult> Login(string username, string password, string? returnUrl = null)
     {
         // Login tjekkes nu på serveren. Brugernavn og kodeord står i appsettings.Development.json (kun til udvikling).
@@ -107,12 +109,18 @@ public class HomeController : Controller
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public IActionResult AddProduct(Product product)
+    public IActionResult AddProduct([Bind("Item,Cost,Img,Tag")] Product product) // Id kan ikke sendes med (overposting).
     {
         // "29,95" ville ellers blive læst som 2995, fordi komma er tusindtalsseparator med punktum som decimaltegn.
         if (Request.Form["Cost"].ToString().Contains(','))
         {
             ModelState.AddModelError(nameof(Product.Cost), "Use a dot for decimals, e.g. 29.95.");
+        }
+
+        // Billeder vises direkte fra brugerens link, og browsere blokerer http-billeder på en https-side.
+        if (!string.IsNullOrEmpty(product.Img) && !product.Img.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError(nameof(Product.Img), "Use an https:// link.");
         }
 
         if (!ModelState.IsValid) // Før blev et tomt felt gemt som null og fik databasen til at crashe.

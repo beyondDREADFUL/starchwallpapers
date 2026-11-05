@@ -77,7 +77,9 @@ public class ImageOfTheDayFetcher : BackgroundService
 
             bool isVideo = a.MediaType == "video";
             string? thumb = isVideo ? a.ThumbnailUrl : a.Url;
-            if (string.IsNullOrEmpty(thumb) || string.IsNullOrEmpty(a.Url)) continue; // Fx interaktive dage uden billede.
+            string? full = isVideo ? a.Url : (a.HdUrl ?? a.Url);
+            // Kun rigtige https-adresser gemmes, da de ender i <a href> og <img src>. Springer fx interaktive dage uden billede over.
+            if (!IsHttpsUrl(thumb) || !IsHttpsUrl(full)) continue;
 
             db.NASAIotd.Add(new NASA
             {
@@ -85,8 +87,8 @@ public class ImageOfTheDayFetcher : BackgroundService
                 Title = a.Title ?? "",
                 Tooltip = a.Explanation ?? "",
                 Copyright = a.Copyright?.Trim().Replace("\n", " "),
-                Thumbnail = thumb,
-                Hdimg = isVideo ? a.Url : (a.HdUrl ?? a.Url),
+                Thumbnail = thumb!,
+                Hdimg = full!,
                 IsVideo = isVideo,
             });
             existing.Add(a.Date);
@@ -110,9 +112,14 @@ public class ImageOfTheDayFetcher : BackgroundService
         foreach (var b in archive?.Images ?? [])
         {
             // startdate er "20261105". Gemmes som "2026-11-05" ligesom NASA og de gamle rækker.
-            if (b.StartDate is not { Length: 8 } d || string.IsNullOrEmpty(b.UrlBase)) continue;
+            if (b.StartDate is not { Length: 8 } d || !d.All(char.IsAsciiDigit)) continue;
             var date = $"{d[..4]}-{d[4..6]}-{d[6..]}";
             if (existing.Contains(date)) continue;
+
+            // urlbase skal være en sti på bing.com ("/th?id=..."), ikke en hel adresse et andet sted hen.
+            var url = $"https://www.bing.com{b.UrlBase}_UHD.jpg";
+            if (b.UrlBase is null || !b.UrlBase.StartsWith("/th?id=", StringComparison.Ordinal)
+                || !IsHttpsUrl(url) || new Uri(url).Host != "www.bing.com") continue;
 
             // copyright er "Sted, Land (© Fotograf/Bureau)". Stedet bliver titlen og resten copyright.
             var text = b.Copyright ?? "";
@@ -124,7 +131,7 @@ public class ImageOfTheDayFetcher : BackgroundService
             {
                 Date = date,
                 Title = title,
-                Url = $"https://www.bing.com{b.UrlBase}_UHD.jpg", // Fuld opløsning. Siden viser en 1280px udgave.
+                Url = url, // Fuld opløsning. Siden viser en 1280px udgave.
                 Copyright = copyright,
             });
             existing.Add(date);
@@ -133,6 +140,9 @@ public class ImageOfTheDayFetcher : BackgroundService
         await db.SaveChangesAsync(ct);
         _logger.LogInformation("Bing: {Added} new", added);
     }
+
+    private static bool IsHttpsUrl(string? url) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps && url!.Length <= 2048;
 
     private record ApodResponse(
         [property: JsonPropertyName("date")] string? Date,

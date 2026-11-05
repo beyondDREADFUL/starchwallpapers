@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -20,9 +21,37 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Home/Login";
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.Cookie.HttpOnly = true; // JavaScript kan ikke læse login-cookien.
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Kun over HTTPS i produktion.
     });
 
+// Højst 5 login-forsøg pr. minut pr. IP-adresse, så kodeordet ikke kan gættes ved at prøve tusindvis.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = (context, ct) =>
+        new ValueTask(context.HttpContext.Response.WriteAsync("Too many login attempts. Wait a minute and try again.", ct));
+    options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1) }));
+});
+
 var app = builder.Build();
+
+// Sikkerheds-headers på alle svar.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.XContentTypeOptions = "nosniff";
+    headers.XFrameOptions = "DENY"; // Siden må ikke vises i en iframe (clickjacking).
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    // Scripts må kun komme fra siden selv. Billeder må komme fra alle HTTPS-adresser (Bing, NASA og brugernes links).
+    headers.ContentSecurityPolicy =
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; " +
+        "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+    await next();
+});
 
 // Databasen (en SQLite-fil) oprettes ét sted ved opstart i stedet for i hver controller-metode.
 using (var scope = app.Services.CreateScope())
@@ -48,6 +77,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

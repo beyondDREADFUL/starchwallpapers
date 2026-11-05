@@ -20,3 +20,15 @@ function ResetFilter() { // Resetter filtre og gør alt synligt igen. Rydder ogs
     document.getElementById("FilterTag").value = "";
     FilterTags();
 }
+
+// Knapperne kobles på her i stedet for onclick/onsubmit i HTML'en,
+// fordi sidens Content-Security-Policy ikke tillader inline JavaScript.
+document.addEventListener("DOMContentLoaded", function () {
+    var form = document.getElementById("filterform");
+    if (!form) return; // Kun på Browse-siden.
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        FilterTags();
+    });
+    document.getElementById("resetfilter").addEventListener("click", ResetFilter);
+});

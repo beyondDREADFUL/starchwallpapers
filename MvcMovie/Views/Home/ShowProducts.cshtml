@@ -1,4 +1,4 @@
-﻿@model List<Product>
+@model List<Product>
 @* Data hentes fra Product modellen. *@
 
 @{
@@ -8,12 +8,12 @@
 <h1>Browse between @Model.Count of our curated wallpapers!</h1>
 <div>
     <h3>Filter by Tag</h3>
-    <form class="filter-form" onsubmit="FilterTags(); return false;">
+    <form id="filterform" class="filter-form">
         <div class="input-group" style="max-width: 360px;">
             <span class="input-group-text">#</span>
             <input type="text" id="FilterTag" class="form-control" placeholder="nature" />
             <button type="submit" class="btn btn-outline-primary">Submit</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="ResetFilter()">Reset Filter</button>
+            <button type="button" id="resetfilter" class="btn btn-outline-secondary">Reset Filter</button>
         </div>
     </form>
     <p id="nomatch" class="text-muted" style="display:none;">No wallpapers with that tag.</p>
